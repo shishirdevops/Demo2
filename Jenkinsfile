@@ -20,9 +20,10 @@ node{
     stage ('Publish build info'){
         server.publishBuildInfo buildInfo
     }
-   
-   sh " sh gettheversion.sh > commandResult"
+    stage ('get the artifact version'){
+    sh " sh gettheversion.sh > commandResult"
    artifact = readFile('commandResult').trim()
+    }
    stage('Build Docker Image'){
      sh "docker build -t reddysbrahma/my-app:${artifact} ."
    }
