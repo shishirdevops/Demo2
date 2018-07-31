@@ -4,6 +4,7 @@ node{
       def mvnHome = tool 'maven-3'
       def buildInfo = Artifactory.newBuildInfo()
 	  
+	  
 	
    stage('SCM Checkout'){
        git credentialsId: 'git-brahma', url: 'https://github.com/reddysbrahma/my-app.git'
@@ -20,10 +21,15 @@ node{
     stage ('Publish build info'){
         server.publishBuildInfo buildInfo
     }
-    stage ('get the artifact version'){
-    sh " sh gettheversion.sh > commandResult"
-   artifact = readFile('commandResult').trim()
+    stage('SonarQube analysis') {
+    def scannerHome = tool 'sonar-scanner';
+    withSonarQubeEnv('sonar') {
+      sh "${scannerHome}/bin/sonar-scanner"
+	 sh '/opt/apache-maven-3.5.4/bin/mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.2:sonar'
     }
+   }
+   sh " sh gettheversion.sh > commandResult"
+   artifact = readFile('commandResult').trim()
    stage('Build Docker Image'){
      sh "docker build -t reddysbrahma/my-app:${artifact} ."
    }
